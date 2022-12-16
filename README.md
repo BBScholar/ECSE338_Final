@@ -30,7 +30,7 @@ To run with processes as section headers:
 ```
 
 Example output:
-![Proc Flag Image](https://github.com/BBScholar/ECSE338_Final/blob/table_lib/images/ProcImg.jpg?raw=true)
+![Proc Flag Image](https://raw.github.com/BBScholar/ECSE338_Final/table_lib/ProcImg.jpg)
 
 To run with shared objects as section headers:
 ```
@@ -38,4 +38,4 @@ To run with shared objects as section headers:
 ```
 
 Example output:
-![Obj Flag Image](https://github.com/BBScholar/ECSE338_Final/blob/table_lib/images/ObjImg.jpg?raw=true)
+![Obj Flag Image](https://github.com/BBScholar/ECSE338_Final/blob/table_lib/ObjImg.jpg?raw=true)
