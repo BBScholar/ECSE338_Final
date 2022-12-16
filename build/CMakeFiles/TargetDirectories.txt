@@ -1,3 +1,0 @@
-/home/bscholar/ecse338_final/build/CMakeFiles/rebuild_cache.dir
-/home/bscholar/ecse338_final/build/CMakeFiles/edit_cache.dir
-/home/bscholar/ecse338_final/build/CMakeFiles/shared_info.dir
