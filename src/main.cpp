@@ -61,8 +61,6 @@ int main(int argc, char **argv) {
       specified_pid = true;
       sort_by_process = true;
       spid = std::stoul(argv[++i]);
-    } else if (arg == "-c") {
-      run_cont = true;
     }
   }
 
@@ -201,7 +199,8 @@ void print_obj(map<std::string, set<uint32_t>> &m,
     std::stringstream ss;
     for (auto proc_iter = iter->second.begin(); proc_iter != iter->second.end();
          ++proc_iter) {
-      ss << proc_names[*proc_iter] << "\n";
+      ss << proc_names[*proc_iter] << " (" << std::to_string(*proc_iter)
+         << ")\n";
     }
     table << ss.str() << fort::endr << fort::separator;
   }
