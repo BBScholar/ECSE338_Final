@@ -23,65 +23,57 @@ namespace fs = std::filesystem;
 template <typename T, typename U> using map = std::map<T, U>;
 template <typename T> using set = std::set<T>;
 
+using proc_map = std::unordered_map<uint32_t, std::string>;
+
 std::vector<uint32_t> get_pid_list();
 void process_pid(uint32_t pid, map<uint32_t, set<std::string>> &proc_map,
                  map<std::string, set<uint32_t>> &obj_map,
-                 map<uint32_t, std::string> &proc_names);
+                 ::proc_map &proc_names);
 
 void follow_symlink(fs::path &path);
 
 std::string wrap_string(const std::string &s, size_t line_width);
 
-void print_proc(map<uint32_t, set<std::string>> &m,
-                map<uint32_t, std::string> &proc_names);
-void print_obj(map<std::string, set<uint32_t>> &m,
-               map<uint32_t, std::string> &proc_names);
-void clear_terminal();
+void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names);
+void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names);
+
+void print_usage() {
+  std::cout << "Usage: shared_info < -obj | -proc >" << std::endl;
+  std::cout << "-proc -- sort by process" << std::endl;
+  std::cout << "-obj  -- sort by object" << std::endl;
+}
 
 int main(int argc, char **argv) {
   argc--;
   argv++;
 
-  // -proc -- sort by parent process
-  // -obj -- sort by so file
-  // -p <pid> -- specify a single pid
+  if (argc == 0) {
+    print_usage();
+    return 1;
+  }
 
   bool sort_by_process = true;
-  bool specified_pid = false;
-  bool run_cont = false;
-  uint32_t spid = 0;
 
   for (int i = 0; i < argc; ++i) {
     std::string arg(argv[i]);
     if (arg == "-proc")
       sort_by_process = true;
-    else if (!specified_pid && arg == "-obj")
+    else if (arg == "-obj")
       sort_by_process = false;
-    else if (arg == "-p") {
-      specified_pid = true;
-      sort_by_process = true;
-      spid = std::stoul(argv[++i]);
+    else {
+      print_usage();
+      return 1;
     }
-  }
-
-  if (specified_pid) {
-    std::cout << "Using specific PID: " << spid << std::endl;
-  } else {
-    std::cout << "Getting information on all PIDs" << std::endl;
   }
 
   map<uint32_t, set<std::string>> proc2obj;
   map<std::string, set<uint32_t>> obj2proc;
-  map<uint32_t, std::string> proc_names;
+  proc_map proc_names;
 
-  if (specified_pid) {
-    process_pid(spid, proc2obj, obj2proc, proc_names);
-  } else {
-    const auto pid_list = get_pid_list();
+  const auto pid_list = get_pid_list();
 
-    for (const auto pid : pid_list) {
-      process_pid(pid, proc2obj, obj2proc, proc_names);
-    }
+  for (const auto pid : pid_list) {
+    process_pid(pid, proc2obj, obj2proc, proc_names);
   }
 
   if (sort_by_process) {
@@ -114,7 +106,7 @@ std::vector<uint32_t> get_pid_list() {
 
 void process_pid(uint32_t pid, map<uint32_t, set<std::string>> &proc_map,
                  map<std::string, set<uint32_t>> &obj_map,
-                 map<uint32_t, std::string> &proc_names) {
+                 ::proc_map &proc_names) {
   std::string path("/proc/");
   path.append(std::to_string(pid));
   path.append("/maps");
@@ -161,8 +153,7 @@ void process_pid(uint32_t pid, map<uint32_t, set<std::string>> &proc_map,
   in_file.close();
 }
 
-void print_proc(map<uint32_t, set<std::string>> &m,
-                map<uint32_t, std::string> &proc_names) {
+void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names) {
   fort::char_table table;
   table.set_border_style(FT_DOUBLE_STYLE);
 
@@ -171,12 +162,16 @@ void print_proc(map<uint32_t, set<std::string>> &m,
         << "Shared Objects" << fort::endr;
 
   for (auto iter = m.begin(); iter != m.end(); iter++) {
-    table << std::to_string(iter->first) << proc_names[iter->first];
+    table << std::to_string(iter->first)
+          << wrap_string(proc_names[iter->first], 20);
     std::stringstream ss;
 
     for (auto so_iter = iter->second.begin(); so_iter != iter->second.end();
          so_iter++) {
-      ss << *so_iter << "\n";
+      if (so_iter != iter->second.begin())
+        ss << "\n";
+      ss << wrap_string(*so_iter, 128);
+      // ss <<  *so_iter;
     }
 
     table << ss.str() << fort::endr << fort::separator;
@@ -185,8 +180,7 @@ void print_proc(map<uint32_t, set<std::string>> &m,
   std::cout << table.to_string() << std::endl;
 }
 
-void print_obj(map<std::string, set<uint32_t>> &m,
-               map<uint32_t, std::string> &proc_names) {
+void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names) {
 
   fort::char_table table;
   table.set_border_style(FT_DOUBLE_STYLE);
@@ -195,12 +189,14 @@ void print_obj(map<std::string, set<uint32_t>> &m,
         << "Processes" << fort::endr;
 
   for (auto iter = m.begin(); iter != m.end(); ++iter) {
-    table << iter->first;
+    table << wrap_string(iter->first, 56);
     std::stringstream ss;
     for (auto proc_iter = iter->second.begin(); proc_iter != iter->second.end();
          ++proc_iter) {
-      ss << proc_names[*proc_iter] << " (" << std::to_string(*proc_iter)
-         << ")\n";
+      if (proc_iter != iter->second.begin())
+        ss << "\n";
+      ss << wrap_string(proc_names[*proc_iter], 128) << " ("
+         << std::to_string(*proc_iter) << ")";
     }
     table << ss.str() << fort::endr << fort::separator;
   }
@@ -219,15 +215,20 @@ void follow_symlink(std::filesystem::path &path) {
 }
 
 std::string wrap_string(const std::string &s, size_t line_width) {
+
+  if (s.empty())
+    return "";
+
   std::stringstream ss;
 
   int i = 0;
   int splits = 0;
 
-  // for (int i = 0; i < s.size(); i += line_width) {
-  //   auto u_bound = std::min(line_width, s.size() - i);
-  //   ss << s.substr(i, u_bound) << "\n";
-  // }
+  for (int i = 0; i < s.size(); ++i) {
+    ss << s[i];
+    if (i % line_width == 0 && i != 0)
+      ss << "\n";
+  }
 
   return ss.str();
 }
