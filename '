@@ -178,7 +178,7 @@ void print_proc(map<uint32_t, set<std::string>> &m,
 
     for (auto so_iter = iter->second.begin(); so_iter != iter->second.end();
          so_iter++) {
-      ss << *so_iter << "\n";
+      ss << wrap_string(*so_iter, 50) << "\n";
     }
 
     table << ss.str() << fort::endr << fort::separator;
@@ -189,6 +189,17 @@ void print_proc(map<uint32_t, set<std::string>> &m,
 
 void print_obj(map<std::string, set<uint32_t>> &m,
                map<uint32_t, std::string> &proc_names) {
+  // for (auto iter = m.begin(); iter != m.end(); iter++) {
+  //   print_divider();
+  //   std::cout << iter->first << ":" << std::endl;
+  //   print_divider();
+  //   for (auto so_iter = iter->second.begin(); so_iter != iter->second.end();
+  //        so_iter++) {
+  //     std::cout << proc_names[*so_iter] << " (PID: " << *so_iter << ") "
+  //               << std::endl;
+  //   }
+  //   std::cout << "\n\n";
+  // }
 
   fort::char_table table;
   table.set_border_style(FT_DOUBLE_STYLE);
@@ -201,9 +212,9 @@ void print_obj(map<std::string, set<uint32_t>> &m,
     std::stringstream ss;
     for (auto proc_iter = iter->second.begin(); proc_iter != iter->second.end();
          ++proc_iter) {
-      ss << proc_names[*proc_iter] << "\n";
+      ss << wrap_string(proc_names[*proc_iter], 30) << "\n";
     }
-    table << ss.str() << fort::endr << fort::separator;
+    table << ss.str() << fort::endr;
   }
 
   std::cout << table.to_string() << std::endl;
@@ -225,10 +236,10 @@ std::string wrap_string(const std::string &s, size_t line_width) {
   int i = 0;
   int splits = 0;
 
-  // for (int i = 0; i < s.size(); i += line_width) {
-  //   auto u_bound = std::min(line_width, s.size() - i);
-  //   ss << s.substr(i, u_bound) << "\n";
-  // }
+  for (int i = 0; i < s.size(); i += line_width) {
+    auto u_bound = std::min(line_width, s.size() - i);
+    ss << s.substr(i, u_bound) << "\n";
+  }
 
   return ss.str();
 }

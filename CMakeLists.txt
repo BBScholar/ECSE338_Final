@@ -5,6 +5,10 @@ include(CheckIPOSupported)
 
 set(CMAKE_CXX_STANDARD 20)
 
+set(FORT_ENABLE_TESTING OFF CACHE INTERNAL "")
+
+add_subdirectory(third-party/libfort)
+
 include_directories(include)
 
 file(GLOB_RECURSE include_files
@@ -18,6 +22,7 @@ add_executable(shared_info
 # target_link_libraries(
 #   verilog_sim PRIVATE  ${Boost_Libraries}
 # )
+target_link_libraries(shared_info PRIVATE fort)
 
 
 check_ipo_supported(RESULT supported OUTPUT error)
