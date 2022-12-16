@@ -76,6 +76,9 @@ int main(int argc, char **argv) {
     process_pid(pid, proc2obj, obj2proc, proc_names);
   }
 
+  // struct winsize w;
+  // ioctl(0, TIOCGWINSZ, &w);
+
   if (sort_by_process) {
     print_proc(proc2obj, proc_names);
   } else {
@@ -156,6 +159,8 @@ void process_pid(uint32_t pid, map<uint32_t, set<std::string>> &proc_map,
 void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names) {
   fort::char_table table;
   table.set_border_style(FT_DOUBLE_STYLE);
+  table.row(0).set_cell_content_fg_color(fort::color::blue);
+  table.row(0).set_cell_text_style(fort::text_style::bold);
 
   table << fort::header << "PID"
         << "Process Name"
@@ -184,6 +189,8 @@ void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names) {
 
   fort::char_table table;
   table.set_border_style(FT_DOUBLE_STYLE);
+  table.row(0).set_cell_content_fg_color(fort::color::blue);
+  table.row(0).set_cell_text_style(fort::text_style::bold);
 
   table << fort::header << "Shared Object"
         << "Processes" << fort::endr;
