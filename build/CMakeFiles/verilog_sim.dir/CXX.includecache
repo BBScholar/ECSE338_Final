@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/bscholar/ecse338_final/src/main.cpp
+filesystem
+-
+fstream
+-
+iostream
+-
+sstream
+-
+cstring
+-
+string
+-
+unordered_map
+-
+unordered_set
+-
+vector
+-
+
