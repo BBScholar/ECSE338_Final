@@ -38,4 +38,4 @@ To run with shared objects as section headers:
 ```
 
 Example output:
-![Obj Flag Image](https://github.com/BBScholar/ECSE338_Final/blob/table_lib/ObjImg.jpg?raw=true)
+![Obj Flag Image](https://github.com/BBScholar/ECSE338_Final/blob/table_lib/images/ObjImg.jpg?raw=true)
