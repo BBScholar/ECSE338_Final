@@ -34,8 +34,10 @@ void follow_symlink(fs::path &path);
 
 std::string wrap_string(const std::string &s, size_t line_width);
 
-void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names);
-void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names);
+void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names,
+                unsigned short width);
+void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names,
+               unsigned short width);
 
 void print_usage() {
   std::cout << "Usage: shared_info < -obj | -proc >" << std::endl;
@@ -76,13 +78,13 @@ int main(int argc, char **argv) {
     process_pid(pid, proc2obj, obj2proc, proc_names);
   }
 
-  // struct winsize w;
-  // ioctl(0, TIOCGWINSZ, &w);
+  struct winsize w;
+  ioctl(0, TIOCGWINSZ, &w);
 
   if (sort_by_process) {
-    print_proc(proc2obj, proc_names);
+    print_proc(proc2obj, proc_names, w.ws_col);
   } else {
-    print_obj(obj2proc, proc_names);
+    print_obj(obj2proc, proc_names, w.ws_col);
   }
 
   return 0;
@@ -156,7 +158,8 @@ void process_pid(uint32_t pid, map<uint32_t, set<std::string>> &proc_map,
   in_file.close();
 }
 
-void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names) {
+void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names,
+                unsigned short width) {
   fort::char_table table;
   table.set_border_style(FT_DOUBLE_STYLE);
   table.row(0).set_cell_content_fg_color(fort::color::blue);
@@ -168,14 +171,14 @@ void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names) {
 
   for (auto iter = m.begin(); iter != m.end(); iter++) {
     table << std::to_string(iter->first)
-          << wrap_string(proc_names[iter->first], 20);
+          << wrap_string(proc_names[iter->first], width / 7);
     std::stringstream ss;
 
     for (auto so_iter = iter->second.begin(); so_iter != iter->second.end();
          so_iter++) {
       if (so_iter != iter->second.begin())
         ss << "\n";
-      ss << wrap_string(*so_iter, 128);
+      ss << wrap_string(*so_iter, 4 * width / 7);
       // ss <<  *so_iter;
     }
 
@@ -185,7 +188,8 @@ void print_proc(map<uint32_t, set<std::string>> &m, proc_map &proc_names) {
   std::cout << table.to_string() << std::endl;
 }
 
-void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names) {
+void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names,
+               unsigned short width) {
 
   fort::char_table table;
   table.set_border_style(FT_DOUBLE_STYLE);
@@ -196,14 +200,15 @@ void print_obj(map<std::string, set<uint32_t>> &m, proc_map &proc_names) {
         << "Processes" << fort::endr;
 
   for (auto iter = m.begin(); iter != m.end(); ++iter) {
-    table << wrap_string(iter->first, 56);
+    table << wrap_string(iter->first, static_cast<int>(width / 3.25));
     std::stringstream ss;
     for (auto proc_iter = iter->second.begin(); proc_iter != iter->second.end();
          ++proc_iter) {
       if (proc_iter != iter->second.begin())
         ss << "\n";
-      ss << wrap_string(proc_names[*proc_iter], 128) << " ("
-         << std::to_string(*proc_iter) << ")";
+      ss << wrap_string(proc_names[*proc_iter],
+                        static_cast<int>(2 * width / 3.5))
+         << " (" << std::to_string(*proc_iter) << ")";
     }
     table << ss.str() << fort::endr << fort::separator;
   }
