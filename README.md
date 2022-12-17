@@ -6,6 +6,7 @@ Make sure `make`, `cmake`, and `git` are installed.
 git clone https://github.com/BBScholar/ECSE338_Final.git 
 cd ECSE338_Final 
 git submodule init
+git pull --recurse-submodules
 
 mkdir build && cd build 
 cmake .. 
